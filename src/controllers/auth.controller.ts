@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { LoginSchema } from '../schemas/auth.schema';
+import { HttpError } from '../types';
 
 import config from '../config/config';
 
@@ -12,10 +13,9 @@ export const login: RequestHandler = async (req, res) => {
 
     const  validator = LoginSchema.safeParse(req.body)
 
-    if (!validator.success) throw {
-      message: 'Ocurrió un error al validar el esquema',
-      details: validator.error.issues,
-    }  
+    if (!validator.success) {
+      throw new HttpError('Error al validar el esquema', 400, validator.error.issues);
+    }
 
     const loginData = validator.data;
     const loginResponse = await userLoginService(loginData.email, loginData.password);
@@ -27,8 +27,17 @@ export const login: RequestHandler = async (req, res) => {
 
     return res.status(200).json({ usuario: loginResponse.usuario, token: token_generate });
 
-  } catch (error: any) {
-    const status = error.status || 500
-    return res.status(status).json({ error: error || 'Error interno' })
+  } catch (err: unknown) {
+
+    if (err instanceof HttpError) {
+
+      return res.status(err.status ?? 500).json({
+        message: err.message,
+        error: err.payload ?? null,
+      });
+
+    }
+    
+    return res.status(500).json({ message: 'Error interno del servidor', error: err });
   }
 }

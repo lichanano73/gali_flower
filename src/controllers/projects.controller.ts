@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+import { HttpError } from '../types';
 import { Project } from '../models/project.model';
 import { ProjectMember } from '../models/projectMember.model';
 import * as prjSch from '../schemas/projects.schema';
@@ -13,8 +14,17 @@ export const getAllProjects:RequestHandler = async (_req, res) => {
         });
         
         return res.status(200).json(projects);
-    } catch (error) {
-        return res.status(500).json({ message: 'Error retrieving projects', error });
+        
+    } catch (err: unknown) {
+
+        if (err instanceof HttpError) {
+            return res.status(err.status ?? 500).json({
+                message: err.message,
+                error: err.payload ?? null,
+            });
+        }
+        
+        return res.status(500).json({ message: 'Error getAllProjects', error: err });
     }       
 
 };  
@@ -30,9 +40,17 @@ export const getProjectById:RequestHandler = async (req, res) => {
         });
         if (!project) throw { message: 'Project not found'}  
         return res.status(200).json(project);
-    } catch (error) {
-        return res.status(500).json({ message: 'Error retrieving project', error });
-    }   
+    } catch (err: unknown) {
+
+        if (err instanceof HttpError) {
+            return res.status(err.status ?? 500).json({
+                message: err.message,
+                error: err.payload ?? null,
+            });
+        }
+        
+        return res.status(500).json({ message: 'Error getProjectById', error: err });
+    }    
 };
 
 /* 2.3 */
@@ -45,16 +63,24 @@ export const createProject:RequestHandler = async (req, res) => {
         const validator = prjSch.ProjectSchema.safeParse(projectData);
         if (!validator.success) throw {
             message: 'Ocurrió un error al validar el esquema',
-            details: validator.error.issues,
+            error: validator.error.issues,
         } 
         
         projectData.created_by_email = res.locals.user.email;
         const newProject: Project = await Project.create(projectData);
 
         return res.status(201).json(newProject);
-    } catch (error) {   
-        return res.status(500).json({ message: 'Error creating project', error });
-    }   
+    } catch (err: unknown) {
+
+        if (err instanceof HttpError) {
+            return res.status(err.status ?? 500).json({
+                message: err.message,
+                error: err.payload ?? null,
+            });
+        }
+        
+        return res.status(500).json({ message: 'Error createProject', error: err });
+    }       
 
 };
 
@@ -68,7 +94,7 @@ export const updateProject:RequestHandler = async (req, res) => {
         const validator = prjSch.ProjectUpdateSchema.safeParse(req.body);
         if (!validator.success) throw {
             message: 'Ocurrió un error al validar el esquema',
-            details: validator.error.issues,
+            error: validator.error.issues,
         };
 
         const myProject: Project | null = await Project.findByPk(id);        
@@ -78,8 +104,16 @@ export const updateProject:RequestHandler = async (req, res) => {
 
         return res.status(200).json(myProject);
         
-    } catch (error) {
-        return res.status(500).json({ message: 'Error updating project', error });
+    } catch (err: unknown) {
+
+        if (err instanceof HttpError) {
+            return res.status(err.status ?? 500).json({
+                message: err.message,
+                error: err.payload ?? null,
+            });
+        }
+        
+        return res.status(500).json({ message: 'Error updateProject', error: err });
     }   
 
 };  
@@ -95,9 +129,17 @@ export const deleteProject:RequestHandler = async (req, res) => {
         if (!deleted) throw { message: 'Project not found'}
 
         return res.status(200).json({ message: 'Project deleted successfully'});   
-    } catch (error) {   
-        return res.status(500).json({ message: 'Error deleting project', error });
-    }
+    } catch (err: unknown) {
+
+        if (err instanceof HttpError) {
+            return res.status(err.status ?? 500).json({
+                message: err.message,
+                error: err.payload ?? null,
+            });
+        }
+        
+        return res.status(500).json({ message: 'Error deleteProject', error: err });
+    }   
 };
 
 /* 2.6 */  
@@ -109,7 +151,7 @@ export const addMemberToProject:RequestHandler = async (req, res) => {
 
         if (!validator.success) throw {
             message: 'Ocurrió un error al validar el esquema',
-            details: validator.error.issues,
+            error: validator.error.issues,
         }
         const { email, role } = validator.data;
 
@@ -128,7 +170,15 @@ export const addMemberToProject:RequestHandler = async (req, res) => {
             project_id: project.id, email, role,
         });
         return res.status(201).json(newMember);
-    } catch (error) {   
-        return res.status(500).json({ message: 'Error adding member to project', error });
-    }
+    } catch (err: unknown) {
+
+        if (err instanceof HttpError) {
+            return res.status(err.status ?? 500).json({
+                message: err.message,
+                error: err.payload ?? null,
+            });
+        }
+        
+        return res.status(500).json({ message: 'Error addMemberToProject', error: err });
+    }  
 };

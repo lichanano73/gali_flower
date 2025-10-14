@@ -1,5 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import config from '../config/config';
+import { HttpError } from '../types';
 
 function createHeader() {
   return {
@@ -28,11 +29,12 @@ export const userLoginService = async (email: string, password: string): Promise
 
     return data;
   } catch (err) {
+
     const error = err as AxiosError<any>;
-    // Propaga un error más informativo
-    const status = error.response?.status;
+
+    const status  = error.response?.status ?? 500;
     const payload = error.response?.data;
-    console.error('Login service failed', { status, payload, message: error.message });
-    throw new Error(payload?.error ?? `Login service failed${status ? ` (HTTP ${status})` : ''}`);
+    
+    throw new HttpError(payload.error.message, status, payload.error);
   }
 };
