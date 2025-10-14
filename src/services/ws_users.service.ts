@@ -1,23 +1,64 @@
 import axios, { AxiosError } from 'axios';
 import config from '../config/config';
-import { HttpError } from '../types';
+import { HttpError, QueryParams} from '../types';
 
-function createHeader() {
+import { LoginResponse } from '../types';
+
+type UserDTO = {
+  id: string;
+  email: string;
+  name?: string;
+  // agrega lo que devuelva tu micro…
+};
+
+
+function createHeader(token?: string ) {
+  if (token) {
+    return {
+      'Content-Type': 'application/json',
+      'Accept': '*/*',
+      'Authorization': `Bearer ${token}`,
+    };
+  }
+  
   return {
     'Content-Type': 'application/json',
     'Accept': '*/*',
   };
 }
 
-interface LoginResponse {
-  token: string;
-  usuario: {
-    id: number;
-    email: string;
-    first_name: string;
-    [k: string]: unknown;
-  };
-}
+export const getUsersService = async ( token: string, query: QueryParams): Promise<UserDTO[]> => {
+  try {
+    console.log("==> getUsersService");
+    console.log("Token:", token ? "[provided]" : "[empty]");
+    console.log("Query:", query);
+
+    const url = `${config.url_ws_users}/users`;
+
+    // Solo incluye params definidos
+    const params: Record<string, string | number> = {
+      page: query.page,
+      limit: query.limit,
+      ...(query.email ? { email: query.email } : {}),
+    };
+
+    const { data } = await axios.get<UserDTO[]>(url, {
+      headers: createHeader(token),
+      params,
+    });
+
+    return data;
+  } catch (err) {
+    const error = err as AxiosError<any>;
+
+    const status  = error.response?.status ?? 500;
+    const payload = error.response?.data;
+    
+    throw new HttpError(payload.error.message, status, payload.error);
+  }
+};
+
+
 
 export const userLoginService = async (email: string, password: string): Promise<LoginResponse> => {
   try {
@@ -38,3 +79,25 @@ export const userLoginService = async (email: string, password: string): Promise
     throw new HttpError(payload.error.message, status, payload.error);
   }
 };
+
+
+
+export const verifyTokenService = async (token: string): Promise<{ id: string; email: string }> => {
+  try {
+    const url = `${config.url_ws_users}/auth/ws_verifytoken`;
+
+    const { data } = await axios.get<{ id: string; email: string }>(url, {
+      headers: createHeader(token),
+    });
+
+    console.log("==> verifyTokenService data:", data);
+    return data;
+  } catch (err) {
+
+    const error = err as AxiosError<any>; 
+    const status  = error.response?.status ?? 500;
+    const payload = error.response?.data;
+
+    throw new HttpError(payload.error.message, status, payload.error);
+  }
+}

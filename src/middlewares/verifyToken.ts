@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import jwt from "jsonwebtoken";
 import config from "../config/config";
+import * as ws_users from '../services/ws_users.service';
 
 export const verifyToken: RequestHandler = async (req, res, next) => {
   try {
@@ -8,10 +9,8 @@ export const verifyToken: RequestHandler = async (req, res, next) => {
     if (!authHeader?.startsWith('Bearer ')) throw { status: 401, message: 'Token no proporcionado' }
 
     const token   = authHeader.split(' ')[1]
-    const decoded = jwt.verify(token, config.jwt_secret as string) as { id: number, email: string }
-    
-    console.log('==> VerifyToken decoded: ', decoded.email);
 
+    const decoded = await ws_users.verifyTokenService(token);
     if(!decoded.id || !decoded.email) throw { status: 401, message: 'Token inválido' }
     
     res.locals.user = { id: decoded.id, email: decoded.email };
@@ -19,7 +18,7 @@ export const verifyToken: RequestHandler = async (req, res, next) => {
     
   } catch (error: any) {
     const status = error.status || 500
-    return res.status(status).json({ error: error || 'Token inválido' })
+    return res.status(status).json({ error: error || 'Token inválido. Status 500' })
   }
 };
 
@@ -32,7 +31,7 @@ export const verifyTokenClient: RequestHandler = async (req, res, next) => {
     const token   = authHeader.split(' ')[1]
     const decoded = jwt.verify(token, config.jwt_secret as string) as { project_id: string, email: string }
     
-    console.log('==> VerifyToken decoded: ', decoded.email);
+    console.log('==> Verify Client decoded: ', decoded.email);
 
     console.log(decoded.project_id)
 
@@ -43,6 +42,6 @@ export const verifyTokenClient: RequestHandler = async (req, res, next) => {
     
   } catch (error: any) {
     const status = error.status || 500
-    return res.status(status).json({ error: error || 'Token inválido' })
+    return res.status(status).json({ error: error || 'Token inválido. Status 500' })
   }
 };

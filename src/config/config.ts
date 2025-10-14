@@ -6,6 +6,7 @@ dotenv.config();
 
 const envSchema = z.object({
   PORT:         z.string().min(1).default('8000'),
+  PRJ_NAME:     z.string().min(1).default('GaliFlower'),
   URL_WS_USERS: z.string().url(),
   DB_HOST:      z.string().min(1),
   DB_PORT:      z.string().regex(/^\d+$/).default('3306'),
@@ -36,4 +37,5 @@ export default {
     pass:   env.DB_PASS,
   },
   jwt_secret: env.JWT_SECRET,
+  prj_name:  env.PRJ_NAME,
 };

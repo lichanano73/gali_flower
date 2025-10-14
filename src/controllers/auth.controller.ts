@@ -5,27 +5,50 @@ import { HttpError } from '../types';
 import config from '../config/config';
 
 import { userLoginService } from '../services/ws_users.service';
-import jwt from "jsonwebtoken";
+import { Project } from '../models/project.model';
+import { ProjectMember } from '../models/projectMember.model';
 
+
+/* login exclusivo para GaliFlower */
 export const login: RequestHandler = async (req, res) => {
+
+  console.log('\x1b[33m%s\x1b[0m', '==> Login GaliFlower');
 
   try {
 
-    const  validator = LoginSchema.safeParse(req.body)
-
+    const validator = LoginSchema.safeParse(req.body)
     if (!validator.success) {
       throw new HttpError('Error al validar el esquema', 400, validator.error.issues);
     }
-
     const loginData = validator.data;
+
+    /* Verificar Gali Flower */
+    const { project_name } = req.body;
+
+    if (project_name !== config.prj_name) {
+      throw new HttpError('Proyecto no autorizado', 401);
+    }
+
+    const project: Project | null = await Project.findOne({ where: { code: project_name }})
+    if (!project) {
+      throw new HttpError('Proyecto no encontrado', 404)
+    }
+
+    const member = await ProjectMember.findOne({
+      where: { project_id: project.id, email: loginData.email},
+      attributes: ['project_id', 'email', 'role'],
+    });
+
+    if (!member) {
+      throw new HttpError('Usuario no encontrado en el proyecto', 404);
+    }
+
+    console.log('==> loginData: ', loginData);
     const loginResponse = await userLoginService(loginData.email, loginData.password);
-    const user_result = loginResponse.usuario;
 
-    const token_generate = jwt.sign({ id: user_result.id, email: user_result.email }, config.jwt_secret, { expiresIn: '24h' });
+    console.log('==> loginResponse: ', loginResponse);
 
-    console.log('==> Nuevo login: ', loginResponse.usuario.email);
-
-    return res.status(200).json({ usuario: loginResponse.usuario, token: token_generate });
+    return res.status(200).json({ usuario: loginResponse.usuario, token: loginResponse.token });
 
   } catch (err: unknown) {
 
