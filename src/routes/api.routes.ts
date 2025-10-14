@@ -3,7 +3,7 @@ import express from 'express';
 import authRouter from './auth.routes';
 import projectsRouter from './projects.routes';
 
-import { verifyToken } from '../middelwares/verifyToken';
+import { verifyToken } from '../middlewares/verifyToken';
 
 const router = express.Router();
 

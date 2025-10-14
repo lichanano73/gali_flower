@@ -1,5 +1,6 @@
 import express from 'express';
 import api_routes from './routes/api.routes';
+import client_routes from './routes/client/client.index';
 
 const app = express();
 app.use(express.json());
@@ -15,6 +16,7 @@ app.get('/',(_req,res)=>{
 });
 
 app.use('/api/v1', api_routes);
+app.use('/api/v0.1/client', client_routes);
 
 app.use((_req,res)=>{
     console.log('/404');
