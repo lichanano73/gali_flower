@@ -22,11 +22,10 @@ export const login: RequestHandler = async (req, res) => {
     }
     const loginData = validator.data;
 
-    /* Verificar Gali Flower */
+    /* Verificar permisos Gali Flower */
     const { project_name } = req.body;
-
     if (project_name !== config.prj_name) {
-      throw new HttpError('Proyecto no autorizado', 401);
+      throw new HttpError('Proyecto no autorizado', 401, { project_name });
     }
 
     const project: Project | null = await Project.findOne({ where: { code: project_name }})
@@ -40,7 +39,7 @@ export const login: RequestHandler = async (req, res) => {
     });
 
     if (!member) {
-      throw new HttpError('Usuario no encontrado en el proyecto', 404);
+      throw new HttpError('Usuario no asignado al proyecto. Pongase en contacto con el soporte', 404, { email: loginData.email, project_code: project.code });
     }
 
     console.log('==> loginData: ', loginData);

@@ -11,18 +11,22 @@ export const getUsers: RequestHandler = async (req, res) => {
 
   try {
     
-    const parsed = QuerySchema.safeParse(req.body);
+    const parsed = QuerySchema.safeParse(req.query);
+    console.log("Parsed:", parsed);
+
     if (!parsed.success) {
       throw new HttpError('Error al validar el esquema', 400, parsed.error.issues);
     }
 
     const query:QueryParams = parsed.data;
-    const token = 'asdfasdfasdfsdf';
+    const token = req.headers.authorization?.split(' ')[1] || '';
 
+    if (!token) {
+      throw new HttpError('Token no proporcionado', 401);
+    }
+    
     const users = await getUsersService(token, query);
-
-    console.log("Users:", users);
-
+    
     return res.status(200).json(users);
 
   } catch (err: unknown) {

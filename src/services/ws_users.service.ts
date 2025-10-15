@@ -1,16 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import config from '../config/config';
 import { HttpError, QueryParams} from '../types';
-
 import { LoginResponse } from '../types';
-
-type UserDTO = {
-  id: string;
-  email: string;
-  name?: string;
-  // agrega lo que devuelva tu micro…
-};
-
 
 function createHeader(token?: string ) {
   if (token) {
@@ -27,22 +18,18 @@ function createHeader(token?: string ) {
   };
 }
 
-export const getUsersService = async ( token: string, query: QueryParams): Promise<UserDTO[]> => {
+export const getUsersService = async ( token: string, query: QueryParams): Promise<[]> => {
   try {
-    console.log("==> getUsersService");
-    console.log("Token:", token ? "[provided]" : "[empty]");
-    console.log("Query:", query);
-
     const url = `${config.url_ws_users}/users`;
 
     // Solo incluye params definidos
     const params: Record<string, string | number> = {
-      page: query.page,
-      limit: query.limit,
+      page:   query.page,
+      limit:  query.limit,
       ...(query.email ? { email: query.email } : {}),
     };
 
-    const { data } = await axios.get<UserDTO[]>(url, {
+    const { data } = await axios.get<[]>(url, {
       headers: createHeader(token),
       params,
     });
@@ -89,8 +76,7 @@ export const verifyTokenService = async (token: string): Promise<{ id: string; e
     const { data } = await axios.get<{ id: string; email: string }>(url, {
       headers: createHeader(token),
     });
-
-    console.log("==> verifyTokenService data:", data);
+    
     return data;
   } catch (err) {
 
