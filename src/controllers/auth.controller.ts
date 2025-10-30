@@ -23,12 +23,12 @@ export const login: RequestHandler = async (req, res) => {
     const loginData = validator.data;
 
     /* Verificar permisos Gali Flower */
-    const { project_name } = req.body;
-    if (project_name !== config.prj_name) {
-      throw new HttpError('Proyecto no autorizado', 401, { project_name });
+    const { project_code } = req.body;
+    if (project_code !== config.prj_name) {
+      throw new HttpError('Proyecto no autorizado', 401, { project_code });
     }
 
-    const project: Project | null = await Project.findOne({ where: { code: project_name }})
+    const project: Project | null = await Project.findOne({ where: { code: project_code }})
     if (!project) {
       throw new HttpError('Proyecto no encontrado', 404)
     }
