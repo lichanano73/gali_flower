@@ -44,7 +44,6 @@ export const login: RequestHandler = async (req, res) => {
 
     console.log('==> loginData: ', loginData);
     const loginResponse = await userLoginService(loginData.email, loginData.password);
-
     console.log('==> loginResponse: ', loginResponse);
 
     return res.status(200).json({ usuario: loginResponse.usuario, token: loginResponse.token });

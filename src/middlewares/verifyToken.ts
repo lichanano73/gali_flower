@@ -62,7 +62,7 @@ export const verifyTokenClient: RequestHandler = async (req, res, next) => {
 
     if(!decoded.project_id || !decoded.email) throw { status: 401, message: 'Token inválido' }
     
-    res.locals.user = { prj_id: decoded.project_id, email: decoded.email };
+    res.locals.user = { prj_id: decoded.project_id, email: decoded.email, token_client: token };
     return next();
     
   } catch (error: any) {

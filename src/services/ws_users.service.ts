@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import config from '../config/config';
 import { HttpError, QueryParams} from '../types';
 import { LoginResponse } from '../types';
+import { NonSensitiveInfoUser, UserUpdatePayload } from '../schemas/user.shema';
 
 function createHeader(token?: string ) {
   if (token) {
@@ -46,7 +47,6 @@ export const getUsersService = async ( token: string, query: QueryParams): Promi
 };
 
 
-
 export const userLoginService = async (email: string, password: string): Promise<LoginResponse> => {
   try {
     const url = `${config.url_ws_users}/auth`;
@@ -67,8 +67,6 @@ export const userLoginService = async (email: string, password: string): Promise
   }
 };
 
-
-
 export const verifyTokenService = async (token: string): Promise<{ id: string; email: string }> => {
   try {
     const url = `${config.url_ws_users}/auth/ws_verifytoken`;
@@ -87,3 +85,29 @@ export const verifyTokenService = async (token: string): Promise<{ id: string; e
     throw new HttpError(payload.error.message, status, payload.error);
   }
 }
+
+export const userUpdateService = async ( id: Number, updateData: UserUpdatePayload, token: string): Promise<NonSensitiveInfoUser> => {
+  try {
+    const url = `${config.url_ws_users}/users/${id}`;
+
+    const { data } = await axios.put(url, updateData, {
+      headers: createHeader(token),
+    });
+
+    return data;
+
+  } catch (err) {
+    const error   = err as AxiosError<any>;
+    const status  = error.response?.status ?? 500;
+    const payload = error.response?.data;
+
+    // Defenderse si payload.error puede ser string u objeto
+    const msg =
+      (payload?.error?.message) ??
+      (typeof payload?.error === 'string' ? payload.error : null) ??
+      error.message ??
+      'Error desconocido';
+
+    throw new HttpError(msg, status, payload?.error ?? payload ?? {});
+  }
+};

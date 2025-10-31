@@ -41,8 +41,6 @@ export const loginClient: RequestHandler = async (req, res) => {
       throw new HttpError('Usuario no encontrado en el proyecto', 404);
     }
 
-    console.log(member);
-
     // 🔑 Token generate
     const loginResponse = await userLoginService(loginData.email, loginData.password)
     const user_result   = loginResponse.usuario

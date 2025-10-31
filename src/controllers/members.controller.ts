@@ -7,7 +7,7 @@ import { QueryParams } from "../types"
 
 /* 3.1 */
 export const getUsers: RequestHandler = async (req, res) => {
-  console.log('\x1b[33m%s\x1b[0m', '==> getUsers');
+  console.log('\x1b[33m%s\x1b[0m', '==> 3.1 getUsers');
 
   try {
     
@@ -40,11 +40,9 @@ export const getUsers: RequestHandler = async (req, res) => {
   }
 };
 
-
-
 /* 3.2 */
 export const createUser:RequestHandler = async (_req, res) => {
-    console.log('\x1b[33m%s\x1b[0m', '==> 2.1 getAllProjects');
+    console.log('\x1b[33m%s\x1b[0m', '==> 3.2 createUser');
     try {
         
         return res.status(200).json({"projects": 'Hola mundo'});
@@ -58,7 +56,7 @@ export const createUser:RequestHandler = async (_req, res) => {
             });
         }
         
-        return res.status(500).json({ message: 'Error getAllProjects', error: err });
+        return res.status(500).json({ message: 'Error createUser', error: err });
     }       
 
 };  
