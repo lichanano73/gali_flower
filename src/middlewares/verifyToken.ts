@@ -6,7 +6,8 @@ import { HttpError } from '../types';
 import { Project } from '../models/project.model';
 import { ProjectMember } from '../models/projectMember.model';
 
-export const verifyToken: RequestHandler = async (req, res, next) => {
+export const verifyTokenAdminGali: RequestHandler = async (req, res, next) => {
+  // Verifica Token Generado por WS-Users para admin Gali
   try {
     const authHeader = req.headers.authorization
     if (!authHeader?.startsWith('Bearer ')) throw { status: 401, message: 'Token no proporcionado' }
@@ -50,19 +51,33 @@ export const verifyToken: RequestHandler = async (req, res, next) => {
 };
 
 
-export const verifyTokenClient: RequestHandler = async (req, res, next) => {
+export const verifyTokenGali: RequestHandler = async (req, res, next) => {
   try {
+
+    // Verifica Token Generado por Gali para Clientes
     const authHeader = req.headers.authorization
     if (!authHeader?.startsWith('Bearer ')) throw { status: 401, message: 'Token no proporcionado' }
 
-    const token   = authHeader.split(' ')[1]
-    const decoded = jwt.verify(token, config.jwt_secret as string) as { project_id: string, email: string }
+    const tokenGali   = authHeader.split(' ')[1]
+    const decoded = jwt.verify(tokenGali, config.jwt_secret as string) as { project_id: string, email: string }
     
-    console.log('==> Verify Client decoded: ', decoded.email);
-
+    console.log('==> TokenGali decoded: ', decoded.email, ' Project_id', decoded.project_id);
     if(!decoded.project_id || !decoded.email) throw { status: 401, message: 'Token inválido' }
+
+    // Verificar Token Generado por WS-Users
+    const tokenClient = req.headers['token_client'] as string;
+    if(!tokenClient) {
+      return res.status(401).json({ error: 'Falta tokenClient en el header' });
+    }   
+    const decoded_ws = await ws_users.verifyTokenService(tokenClient);
+    if(!decoded_ws.id || !decoded_ws.email) throw { status: 401, message: 'Token inválido' }
+
+    if(decoded.email !== decoded_ws.email) {
+      return res.status(401).json({ error: 'Los tokens no coinciden en el email' });
+    }
     
-    res.locals.user = { prj_id: decoded.project_id, email: decoded.email, token_client: token };
+    res.locals.user = { prj_id: decoded.project_id, email: decoded.email, tokenGali: tokenGali, tokenClient: tokenClient };
+
     return next();
     
   } catch (error: any) {

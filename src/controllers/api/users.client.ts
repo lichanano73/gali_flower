@@ -10,7 +10,7 @@ import {NonSensitiveInfoUserSchema, UserUpdatePayload } from '../../schemas/user
 const UpdateUserSchema = NonSensitiveInfoUserSchema.partial(); // todos opcionales
 export const clientUpdateUser: RequestHandler = async (req, res) => {
     try {
-        
+
         const userId = Number(req.params.id);
         if (Number.isNaN(userId)) return res.status(400).json({ error: 'ID inválido' });
 
@@ -26,7 +26,7 @@ export const clientUpdateUser: RequestHandler = async (req, res) => {
 
         console.log(updateData)
 
-        const updatedUser:UserUpdatePayload = await ws_users.userUpdateService(userId, updateData, res.locals.user.token_client);
+        const updatedUser:UserUpdatePayload = await ws_users.userUpdateService(userId, updateData, res.locals.user.tokenClient);
 
         return res.status(200).json({ message: 'User updated successfully', user: updatedUser });
 

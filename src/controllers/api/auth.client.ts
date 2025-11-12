@@ -49,7 +49,7 @@ export const loginClient: RequestHandler = async (req, res) => {
 
     console.log('==> Nuevo login: ', loginResponse.usuario.email, '==> Project_code ', project_code);
 
-    return res.status(200).json({ token: token_generate, member: member, user: user_result });
+    return res.status(200).json({ tokenGali: token_generate, tokenClient: loginResponse.token, member: member, user: user_result });
 
   } catch (err: unknown) {
 
